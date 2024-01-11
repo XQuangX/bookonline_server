@@ -116,13 +116,19 @@ const customerOrderController = {
         customerId: customerId,
         status: orderStatuses.INCART,
       }).lean();
-      console.log(order);
       const newProducts = order.products.filter(
         (product) => product.productId.toString() !== productId
       );
 
+      if(newProducts.length === 0){
+        await Order.findOneAndRemove(
+          { customerId: customerId, status: orderStatuses.INCART },
+        );
+        return res.status(200).json('success');
+      }
+
       const updatedCart = await Order.findOneAndUpdate(
-        { customerId: customerId },
+        { customerId: customerId, status: orderStatuses.INCART },
         {
           $set: { products: newProducts },
         }
